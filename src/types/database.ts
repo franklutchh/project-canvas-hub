@@ -60,6 +60,26 @@ export interface ProjectTagRelation {
   tag_id: string;
 }
 
+export interface UserProfile {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  company_name: string | null;
+  phone: string | null;
+  default_payment_method: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RequirementComment {
+  id: string;
+  requirement_id: string;
+  content: string;
+  author_name: string | null;
+  user_id: string | null;
+  created_at: string;
+}
+
 export const STATUS_LABELS: Record<ProjectStatus, string> = {
   em_conversa: 'Em Conversa',
   em_desenvolvimento: 'Em Desenvolvimento',
