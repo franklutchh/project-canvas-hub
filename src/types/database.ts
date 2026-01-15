@@ -47,6 +47,19 @@ export interface ProjectFile {
   created_at: string;
 }
 
+export interface ProjectTag {
+  id: string;
+  name: string;
+  color: string;
+  owner_id: string;
+  created_at: string;
+}
+
+export interface ProjectTagRelation {
+  project_id: string;
+  tag_id: string;
+}
+
 export const STATUS_LABELS: Record<ProjectStatus, string> = {
   em_conversa: 'Em Conversa',
   em_desenvolvimento: 'Em Desenvolvimento',
