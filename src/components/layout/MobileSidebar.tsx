@@ -1,23 +1,39 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, Plus, LogOut, User, Menu } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Plus, LogOut, Menu, Settings, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useState } from 'react';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/' },
   { icon: FolderKanban, label: 'Projetos', href: '/projects' },
+  { icon: BarChart3, label: 'Analytics', href: '/analytics' },
 ];
 
 export function MobileSidebar() {
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const { profile } = useUserProfile();
   const [open, setOpen] = useState(false);
 
   const handleNavClick = () => {
     setOpen(false);
+  };
+
+  const getInitials = () => {
+    if (profile?.full_name) {
+      return profile.full_name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+    }
+    return user?.email?.charAt(0).toUpperCase() || 'U';
   };
 
   return (
@@ -71,16 +87,32 @@ export function MobileSidebar() {
 
           {/* User */}
           <div className="border-t border-sidebar-border p-4">
-            <div className="flex items-center gap-3 rounded-lg px-3 py-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
-                <User className="h-4 w-4 text-muted-foreground" />
-              </div>
+            <Link
+              to="/settings"
+              onClick={handleNavClick}
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-sidebar-accent/50",
+                location.pathname === '/settings' && "bg-sidebar-accent"
+              )}
+            >
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={profile?.avatar_url || ''} />
+                <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                  {getInitials()}
+                </AvatarFallback>
+              </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="truncate text-sm font-medium text-sidebar-foreground">
-                  {user?.email}
+                  {profile?.full_name || user?.email}
                 </p>
+                {profile?.full_name && (
+                  <p className="truncate text-xs text-muted-foreground">
+                    {user?.email}
+                  </p>
+                )}
               </div>
-            </div>
+              <Settings className="h-4 w-4 text-muted-foreground" />
+            </Link>
             <Button
               variant="ghost"
               size="sm"
