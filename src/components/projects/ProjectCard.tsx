@@ -1,16 +1,22 @@
 import { Link } from 'react-router-dom';
-import { Calendar, User, ChevronRight } from 'lucide-react';
+import { Calendar, User, ChevronRight, AlertTriangle, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Project, STATUS_LABELS, STATUS_COLORS } from '@/types/database';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { TagBadges } from './TagSelector';
+import { ProjectTag } from '@/hooks/useTags';
+import { getDeadlineStatus } from './DeadlineAlerts';
 
 interface ProjectCardProps {
   project: Project;
+  tags?: ProjectTag[];
 }
 
-export function ProjectCard({ project }: ProjectCardProps) {
+export function ProjectCard({ project, tags = [] }: ProjectCardProps) {
+  const deadlineStatus = getDeadlineStatus(project.deadline_end, project.status);
+
   return (
     <Link to={`/projects/${project.id}`}>
       <Card className="group relative overflow-hidden border-border/50 bg-card hover:border-border hover:shadow-lg transition-all duration-300">
@@ -23,17 +29,42 @@ export function ProjectCard({ project }: ProjectCardProps) {
         <CardContent className="p-5 pl-6">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
-                {project.name}
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                  {project.name}
+                </h3>
+                {deadlineStatus && (
+                  <Badge
+                    variant="outline"
+                    className={`shrink-0 text-[10px] px-1.5 py-0 ${
+                      deadlineStatus.type === 'overdue'
+                        ? 'bg-destructive/20 text-destructive border-destructive/30'
+                        : 'bg-amber-500/20 text-amber-500 border-amber-500/30'
+                    }`}
+                  >
+                    {deadlineStatus.type === 'overdue' ? (
+                      <AlertTriangle className="h-3 w-3 mr-1" />
+                    ) : (
+                      <Clock className="h-3 w-3 mr-1" />
+                    )}
+                    {deadlineStatus.days === 0 ? 'Hoje' : `${deadlineStatus.days}d`}
+                  </Badge>
+                )}
+              </div>
               
               {project.client_name && (
                 <div className="mt-1.5 flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <User className="h-3.5 w-3.5" />
+                  <User className="h-3.5 w-3.5 shrink-0" />
                   <span className="truncate">{project.client_name}</span>
                   {project.client_company && (
-                    <span className="text-muted-foreground/60">• {project.client_company}</span>
+                    <span className="text-muted-foreground/60 truncate hidden sm:inline">• {project.client_company}</span>
                   )}
+                </div>
+              )}
+
+              {tags.length > 0 && (
+                <div className="mt-2">
+                  <TagBadges tags={tags} />
                 </div>
               )}
             </div>
