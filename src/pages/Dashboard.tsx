@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
 import { useTags, useAllProjectsTags } from '@/hooks/useTags';
@@ -6,12 +6,14 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { ProjectCard } from '@/components/projects/ProjectCard';
 import { ProjectStats } from '@/components/projects/ProjectStats';
 import { DeadlineAlerts } from '@/components/projects/DeadlineAlerts';
+import { KanbanBoard } from '@/components/kanban/KanbanBoard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, Search, Loader2, Tag, X } from 'lucide-react';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Plus, Search, Loader2, Tag, X, LayoutGrid, Columns } from 'lucide-react';
 import { ProjectStatus, STATUS_LABELS } from '@/types/database';
 
 export default function Dashboard() {
@@ -23,6 +25,13 @@ export default function Dashboard() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | 'all'>('all');
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [viewMode, setViewMode] = useState<'grid' | 'kanban'>(() => {
+    return (localStorage.getItem('dashboard-view-mode') as 'grid' | 'kanban') || 'grid';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('dashboard-view-mode', viewMode);
+  }, [viewMode]);
 
   const toggleTag = (tagId: string) => {
     setSelectedTagIds(prev =>
@@ -58,12 +67,29 @@ export default function Dashboard() {
               Gerencie seus projetos de desenvolvimento
             </p>
           </div>
-          <Button asChild className="w-full sm:w-auto">
-            <Link to="/projects/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Projeto
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <ToggleGroup 
+              type="single" 
+              value={viewMode} 
+              onValueChange={(value) => value && setViewMode(value as 'grid' | 'kanban')}
+              className="hidden sm:flex"
+            >
+              <ToggleGroupItem value="grid" aria-label="Grade" className="gap-1.5">
+                <LayoutGrid className="h-4 w-4" />
+                <span className="hidden md:inline">Grade</span>
+              </ToggleGroupItem>
+              <ToggleGroupItem value="kanban" aria-label="Kanban" className="gap-1.5">
+                <Columns className="h-4 w-4" />
+                <span className="hidden md:inline">Kanban</span>
+              </ToggleGroupItem>
+            </ToggleGroup>
+            <Button asChild className="w-full sm:w-auto">
+              <Link to="/projects/new">
+                <Plus className="mr-2 h-4 w-4" />
+                Novo Projeto
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {/* Deadline Alerts */}
@@ -183,21 +209,28 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Projects Grid */}
+        {/* Projects */}
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : filteredProjects.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredProjects.map((project) => (
-              <ProjectCard 
-                key={project.id} 
-                project={project} 
-                tags={projectsTagsMap[project.id] || []}
-              />
-            ))}
-          </div>
+          viewMode === 'kanban' ? (
+            <KanbanBoard 
+              projects={filteredProjects} 
+              projectTags={projectsTagsMap}
+            />
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredProjects.map((project) => (
+                <ProjectCard 
+                  key={project.id} 
+                  project={project} 
+                  tags={projectsTagsMap[project.id] || []}
+                />
+              ))}
+            </div>
+          )
         ) : (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 px-4">
             <p className="text-muted-foreground text-center">

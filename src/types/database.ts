@@ -15,6 +15,8 @@ export interface Project {
   budget_payment_method: string | null;
   deadline_start: string | null;
   deadline_end: string | null;
+  share_token: string | null;
+  share_enabled: boolean;
   created_at: string;
   updated_at: string;
 }

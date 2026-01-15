@@ -16,7 +16,8 @@ import { DesignTab } from '@/components/projects/tabs/DesignTab';
 import { BudgetTab } from '@/components/projects/tabs/BudgetTab';
 import { TagSelector } from '@/components/projects/TagSelector';
 import { STATUS_LABELS, STATUS_COLORS, ProjectStatus } from '@/types/database';
-import { ArrowLeft, Edit, Trash2, User, Mail, Phone, Building2, Loader2, Download } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, User, Mail, Phone, Building2, Loader2, Download, Share2 } from 'lucide-react';
+import { ShareProjectDialog } from '@/components/projects/ShareProjectDialog';
 import { generateProjectPDF } from '@/lib/generateProjectPDF';
 import { toast } from 'sonner';
 import {
@@ -160,6 +161,12 @@ export default function ProjectDetail() {
             <Button variant="outline" size="icon" onClick={handleExportPDF} title="Exportar PDF">
               <Download className="h-4 w-4" />
             </Button>
+
+            <ShareProjectDialog
+              projectId={project.id}
+              shareToken={(project as any).share_token}
+              shareEnabled={(project as any).share_enabled ?? false}
+            />
 
             <Button variant="outline" size="icon" asChild>
               <Link to={`/projects/${project.id}/edit`}>

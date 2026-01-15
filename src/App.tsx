@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import NewProject from "./pages/NewProject";
 import EditProject from "./pages/EditProject";
 import ProjectDetail from "./pages/ProjectDetail";
+import PublicProjectView from "./pages/PublicProjectView";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -25,6 +26,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/share/:token" element={<PublicProjectView />} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/projects" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/projects/new" element={<ProtectedRoute><NewProject /></ProtectedRoute>} />

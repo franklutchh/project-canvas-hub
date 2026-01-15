@@ -191,6 +191,8 @@ export type Database = {
           id: string
           name: string
           owner_id: string
+          share_enabled: boolean
+          share_token: string | null
           status: Database["public"]["Enums"]["project_status"]
           updated_at: string
           visual_identity: string | null
@@ -209,6 +211,8 @@ export type Database = {
           id?: string
           name: string
           owner_id: string
+          share_enabled?: boolean
+          share_token?: string | null
           status?: Database["public"]["Enums"]["project_status"]
           updated_at?: string
           visual_identity?: string | null
@@ -227,6 +231,8 @@ export type Database = {
           id?: string
           name?: string
           owner_id?: string
+          share_enabled?: boolean
+          share_token?: string | null
           status?: Database["public"]["Enums"]["project_status"]
           updated_at?: string
           visual_identity?: string | null
