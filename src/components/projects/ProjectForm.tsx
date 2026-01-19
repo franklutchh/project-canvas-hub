@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProjects } from '@/hooks/useProjects';
 import { Project, ProjectStatus, STATUS_LABELS } from '@/types/database';
-import { Loader2, Save, ArrowLeft } from 'lucide-react';
+import { Loader2, Save, ArrowLeft, Folder, User, Wallet, Check, Sparkles } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const projectSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
@@ -94,29 +95,44 @@ export function ProjectForm({ project, isEdit }: ProjectFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Premium Header */}
       <div className="flex items-center gap-4">
         <Button
           type="button"
-          variant="ghost"
+          variant="glass"
           size="icon"
           onClick={() => navigate(-1)}
+          className="shrink-0"
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-2xl font-bold">
-          {isEdit ? 'Editar Projeto' : 'Novo Projeto'}
-        </h1>
+        <div>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+            {isEdit ? 'Editar Projeto' : 'Novo Projeto'}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {isEdit ? 'Atualize as informações do projeto' : 'Preencha os dados para criar um novo projeto'}
+          </p>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Project Info */}
-        <Card className="border-border/50 bg-card">
+        <Card className="glass-card overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary to-primary/50" />
           <CardHeader>
-            <CardTitle className="text-lg">Informações do Projeto</CardTitle>
+            <CardTitle className="flex items-center gap-3 text-lg">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5">
+                <Folder className="h-5 w-5 text-primary" />
+              </div>
+              Informações do Projeto
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Nome do Projeto *</Label>
+              <Label htmlFor="name" className="text-muted-foreground text-xs uppercase tracking-wider">
+                Nome do Projeto *
+              </Label>
               <Input
                 id="name"
                 {...register('name')}
@@ -128,26 +144,34 @@ export function ProjectForm({ project, isEdit }: ProjectFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label>Cor do Projeto</Label>
+              <Label className="text-muted-foreground text-xs uppercase tracking-wider">Cor do Projeto</Label>
               <div className="flex flex-wrap gap-2">
                 {colorOptions.map((color) => (
                   <button
                     key={color}
                     type="button"
                     onClick={() => setSelectedColor(color)}
-                    className={`h-8 w-8 rounded-lg transition-all ${
-                      selectedColor === color
-                        ? 'ring-2 ring-primary ring-offset-2 ring-offset-background'
-                        : 'hover:scale-110'
-                    }`}
-                    style={{ backgroundColor: color }}
-                  />
+                    className={cn(
+                      "relative h-10 w-10 rounded-xl transition-all duration-300 hover:scale-110",
+                      selectedColor === color && "ring-2 ring-offset-2 ring-offset-background scale-110"
+                    )}
+                    style={{ 
+                      backgroundColor: color,
+                      '--tw-ring-color': color,
+                    } as React.CSSProperties}
+                  >
+                    {selectedColor === color && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Check className="h-4 w-4 text-white drop-shadow-md animate-scale-in" />
+                      </div>
+                    )}
+                  </button>
                 ))}
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
+              <Label htmlFor="status" className="text-muted-foreground text-xs uppercase tracking-wider">Status</Label>
               <Select
                 value={watch('status')}
                 onValueChange={(value: ProjectStatus) => setValue('status', value)}
@@ -166,7 +190,10 @@ export function ProjectForm({ project, isEdit }: ProjectFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="design_preferences">Preferências de Design</Label>
+              <Label htmlFor="design_preferences" className="text-muted-foreground text-xs uppercase tracking-wider flex items-center gap-2">
+                <Sparkles className="h-3 w-3" />
+                Preferências de Design
+              </Label>
               <Textarea
                 id="design_preferences"
                 {...register('design_preferences')}
@@ -178,13 +205,19 @@ export function ProjectForm({ project, isEdit }: ProjectFormProps) {
         </Card>
 
         {/* Client Info */}
-        <Card className="border-border/50 bg-card">
+        <Card className="glass-card overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 to-emerald-400" />
           <CardHeader>
-            <CardTitle className="text-lg">Informações do Cliente</CardTitle>
+            <CardTitle className="flex items-center gap-3 text-lg">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5">
+                <User className="h-5 w-5 text-emerald-500" />
+              </div>
+              Informações do Cliente
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="client_name">Nome</Label>
+              <Label htmlFor="client_name" className="text-muted-foreground text-xs uppercase tracking-wider">Nome</Label>
               <Input
                 id="client_name"
                 {...register('client_name')}
@@ -193,7 +226,7 @@ export function ProjectForm({ project, isEdit }: ProjectFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="client_email">Email</Label>
+              <Label htmlFor="client_email" className="text-muted-foreground text-xs uppercase tracking-wider">Email</Label>
               <Input
                 id="client_email"
                 type="email"
@@ -206,7 +239,7 @@ export function ProjectForm({ project, isEdit }: ProjectFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="client_phone">Telefone</Label>
+              <Label htmlFor="client_phone" className="text-muted-foreground text-xs uppercase tracking-wider">Telefone</Label>
               <Input
                 id="client_phone"
                 {...register('client_phone')}
@@ -215,7 +248,7 @@ export function ProjectForm({ project, isEdit }: ProjectFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="client_company">Empresa</Label>
+              <Label htmlFor="client_company" className="text-muted-foreground text-xs uppercase tracking-wider">Empresa</Label>
               <Input
                 id="client_company"
                 {...register('client_company')}
@@ -226,14 +259,20 @@ export function ProjectForm({ project, isEdit }: ProjectFormProps) {
         </Card>
 
         {/* Budget & Deadline */}
-        <Card className="border-border/50 bg-card lg:col-span-2">
+        <Card className="glass-card overflow-hidden lg:col-span-2">
+          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500" />
           <CardHeader>
-            <CardTitle className="text-lg">Orçamento e Prazo</CardTitle>
+            <CardTitle className="flex items-center gap-3 text-lg">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/10">
+                <Wallet className="h-5 w-5 text-amber-500" />
+              </div>
+              Orçamento e Prazo
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-4">
               <div className="space-y-2">
-                <Label htmlFor="budget_value">Valor (R$)</Label>
+                <Label htmlFor="budget_value" className="text-muted-foreground text-xs uppercase tracking-wider">Valor (R$)</Label>
                 <Input
                   id="budget_value"
                   type="number"
@@ -244,7 +283,7 @@ export function ProjectForm({ project, isEdit }: ProjectFormProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="budget_payment_method">Forma de Pagamento</Label>
+                <Label htmlFor="budget_payment_method" className="text-muted-foreground text-xs uppercase tracking-wider">Forma de Pagamento</Label>
                 <Input
                   id="budget_payment_method"
                   {...register('budget_payment_method')}
@@ -253,7 +292,7 @@ export function ProjectForm({ project, isEdit }: ProjectFormProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="deadline_start">Data de Início</Label>
+                <Label htmlFor="deadline_start" className="text-muted-foreground text-xs uppercase tracking-wider">Data de Início</Label>
                 <Input
                   id="deadline_start"
                   type="date"
@@ -262,7 +301,7 @@ export function ProjectForm({ project, isEdit }: ProjectFormProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="deadline_end">Data de Entrega</Label>
+                <Label htmlFor="deadline_end" className="text-muted-foreground text-xs uppercase tracking-wider">Data de Entrega</Label>
                 <Input
                   id="deadline_end"
                   type="date"
@@ -275,14 +314,14 @@ export function ProjectForm({ project, isEdit }: ProjectFormProps) {
       </div>
 
       <div className="flex justify-end gap-4">
-        <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+        <Button type="button" variant="ghost" onClick={() => navigate(-1)}>
           Cancelar
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" variant="premium" disabled={isSubmitting} className="gap-2 min-w-[140px]">
           {isSubmitting ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <Save className="mr-2 h-4 w-4" />
+            <Save className="h-4 w-4" />
           )}
           {isEdit ? 'Salvar Alterações' : 'Criar Projeto'}
         </Button>

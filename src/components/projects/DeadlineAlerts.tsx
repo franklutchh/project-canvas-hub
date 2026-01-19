@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom';
-import { AlertTriangle, Clock, ChevronRight } from 'lucide-react';
+import { AlertTriangle, Clock, ChevronRight, Flame, Timer } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Project } from '@/types/database';
 import { differenceInDays, parseISO, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 interface DeadlineAlertsProps {
   projects: Project[];
@@ -44,19 +45,26 @@ export function DeadlineAlerts({ projects }: DeadlineAlertsProps) {
   const upcomingCount = deadlineProjects.filter(dp => !dp.isOverdue).length;
 
   return (
-    <Card className="border-amber-500/30 bg-amber-500/5">
+    <Card className="glass-card border-amber-500/20 overflow-hidden">
+      {/* Glowing top border */}
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500" />
+      
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base font-semibold">
-          <AlertTriangle className="h-4 w-4 text-amber-500" />
+        <CardTitle className="flex items-center gap-3 text-base font-semibold">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/10">
+            <AlertTriangle className="h-5 w-5 text-amber-500" />
+          </div>
           <span>Prazos Próximos</span>
           <div className="flex gap-2 ml-auto">
             {overdueCount > 0 && (
-              <Badge variant="destructive" className="text-xs">
+              <Badge variant="destructive" className="gap-1 animate-pulse">
+                <Flame className="h-3 w-3" />
                 {overdueCount} atrasado{overdueCount > 1 ? 's' : ''}
               </Badge>
             )}
             {upcomingCount > 0 && (
-              <Badge variant="outline" className="text-xs border-amber-500/50 text-amber-500">
+              <Badge variant="glass" className="border-amber-500/30 text-amber-500 gap-1">
+                <Timer className="h-3 w-3" />
                 {upcomingCount} próximo{upcomingCount > 1 ? 's' : ''}
               </Badge>
             )}
@@ -64,31 +72,39 @@ export function DeadlineAlerts({ projects }: DeadlineAlertsProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
-        {deadlineProjects.map(({ project, daysRemaining, isOverdue }) => (
+        {deadlineProjects.map(({ project, daysRemaining, isOverdue }, index) => (
           <Link
             key={project.id}
             to={`/projects/${project.id}`}
-            className={`flex items-center justify-between rounded-lg p-3 transition-colors ${
+            className={cn(
+              "group flex items-center justify-between rounded-xl p-4 transition-all duration-300 animate-fade-in",
               isOverdue 
-                ? 'bg-destructive/10 hover:bg-destructive/20' 
-                : 'bg-amber-500/10 hover:bg-amber-500/20'
-            }`}
+                ? "bg-destructive/10 hover:bg-destructive/20 border border-destructive/20" 
+                : "bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20"
+            )}
+            style={{ animationDelay: `${index * 50}ms` }}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <div
-                className="h-2 w-2 rounded-full"
-                style={{ backgroundColor: project.visual_identity }}
+                className="h-3 w-3 rounded-full shadow-lg animate-pulse"
+                style={{ 
+                  backgroundColor: project.visual_identity,
+                  boxShadow: `0 0 10px ${project.visual_identity}50`
+                }}
               />
               <div>
-                <p className="text-sm font-medium">{project.name}</p>
+                <p className="font-medium group-hover:text-primary transition-colors">{project.name}</p>
                 <p className="text-xs text-muted-foreground">
                   {project.client_name || 'Sem cliente'}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <div className="text-right">
-                <p className={`text-sm font-medium ${isOverdue ? 'text-destructive' : 'text-amber-500'}`}>
+                <p className={cn(
+                  "text-sm font-semibold",
+                  isOverdue ? "text-destructive" : "text-amber-500"
+                )}>
                   {isOverdue
                     ? `${Math.abs(daysRemaining)} dia${Math.abs(daysRemaining) > 1 ? 's' : ''} atrasado`
                     : daysRemaining === 0
@@ -101,7 +117,7 @@ export function DeadlineAlerts({ projects }: DeadlineAlertsProps) {
                   {format(parseISO(project.deadline_end!), "dd 'de' MMM", { locale: ptBR })}
                 </p>
               </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
             </div>
           </Link>
         ))}
