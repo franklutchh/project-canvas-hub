@@ -52,14 +52,19 @@ export function KanbanBoard({ projects, projectTags }: KanbanBoardProps) {
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex gap-4 overflow-x-auto pb-4">
-        {STATUSES.map((status) => (
-          <KanbanColumn
+      <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4">
+        {STATUSES.map((status, index) => (
+          <div 
             key={status}
-            status={status}
-            projects={projectsByStatus[status]}
-            projectTags={projectTags}
-          />
+            className="animate-fade-in"
+            style={{ animationDelay: `${index * 100}ms` }}
+          >
+            <KanbanColumn
+              status={status}
+              projects={projectsByStatus[status]}
+              projectTags={projectTags}
+            />
+          </div>
         ))}
       </div>
     </DragDropContext>

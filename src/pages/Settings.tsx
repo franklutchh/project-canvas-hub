@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Upload, Save, Mail, Building2 } from 'lucide-react';
+import { User, Upload, Save, Mail, Building2, Phone, CreditCard, Sparkles } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Settings() {
@@ -86,9 +86,12 @@ export default function Settings() {
     return (
       <AppLayout>
         <div className="max-w-2xl mx-auto space-y-6">
-          <h1 className="text-2xl font-bold">Configurações</h1>
-          <Skeleton className="h-64" />
-          <Skeleton className="h-48" />
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold">Configurações</h1>
+            <p className="text-muted-foreground">Carregando...</p>
+          </div>
+          <Skeleton className="h-64 rounded-2xl" />
+          <Skeleton className="h-48 rounded-2xl" />
         </div>
       </AppLayout>
     );
@@ -96,82 +99,108 @@ export default function Settings() {
 
   return (
     <AppLayout>
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Configurações</h1>
+      <div className="max-w-2xl mx-auto space-y-8">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">Configurações</h1>
+            <Sparkles className="h-5 w-5 text-primary animate-pulse-glow" />
+          </div>
           <p className="text-muted-foreground">Gerencie seu perfil e preferências</p>
         </div>
 
         {/* Profile Card */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Perfil
-            </CardTitle>
-            <CardDescription>Informações do seu perfil pessoal</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Avatar */}
-            <div className="flex items-center gap-4">
-              <Avatar className="h-20 w-20">
-                <AvatarImage src={profile?.avatar_url || ''} />
-                <AvatarFallback className="text-lg bg-primary text-primary-foreground">
-                  {getInitials()}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleAvatarChange}
-                />
-                <Button
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploading}
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  {isUploading ? 'Enviando...' : 'Alterar Foto'}
-                </Button>
-                <p className="text-sm text-muted-foreground mt-1">JPG, PNG. Máximo 2MB.</p>
+        <Card className="glass-card overflow-hidden">
+          {/* Top accent gradient */}
+          <div className="h-24 bg-gradient-to-r from-primary/20 via-purple-500/20 to-primary/20 relative">
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-card" />
+          </div>
+          
+          <CardHeader className="-mt-12 relative z-10">
+            <div className="flex items-end gap-4">
+              {/* Avatar with glow */}
+              <div className="relative group">
+                <Avatar className="h-24 w-24 ring-4 ring-background shadow-premium">
+                  <AvatarImage src={profile?.avatar_url || ''} />
+                  <AvatarFallback className="text-2xl bg-gradient-to-br from-primary to-purple-600 text-white font-bold">
+                    {getInitials()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 flex items-center justify-center">
+                  <Upload className="h-6 w-6 text-white" />
+                </div>
               </div>
+              <div className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <User className="h-5 w-5 text-primary" />
+                  Perfil
+                </CardTitle>
+                <CardDescription>Informações do seu perfil pessoal</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          
+          <CardContent className="space-y-6">
+            {/* Avatar Upload */}
+            <div className="flex items-center gap-4">
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleAvatarChange}
+              />
+              <Button
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="rounded-xl"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                {isUploading ? 'Enviando...' : 'Alterar Foto'}
+              </Button>
+              <p className="text-sm text-muted-foreground">JPG, PNG. Máximo 2MB.</p>
             </div>
 
             {/* Form Fields */}
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="fullName">Nome Completo</Label>
-                <Input
-                  id="fullName"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Seu nome completo"
-                />
+                <Label htmlFor="fullName" className="text-sm font-medium">Nome Completo</Label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="fullName"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Seu nome completo"
+                    className="pl-11"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Telefone</Label>
-                <Input
-                  id="phone"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="(00) 00000-0000"
-                />
+                <Label htmlFor="phone" className="text-sm font-medium">Telefone</Label>
+                <div className="relative">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="phone"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="(00) 00000-0000"
+                    className="pl-11"
+                  />
+                </div>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="companyName">Nome da Empresa</Label>
+              <Label htmlFor="companyName" className="text-sm font-medium">Nome da Empresa</Label>
               <div className="relative">
-                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="companyName"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
                   placeholder="Sua empresa"
-                  className="pl-10"
+                  className="pl-11"
                 />
               </div>
             </div>
@@ -179,16 +208,19 @@ export default function Settings() {
         </Card>
 
         {/* Preferences Card */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur">
+        <Card className="glass-card">
           <CardHeader>
-            <CardTitle>Preferências</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-primary" />
+              Preferências
+            </CardTitle>
             <CardDescription>Configurações padrão para novos projetos</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="paymentMethod">Método de Pagamento Padrão</Label>
+              <Label htmlFor="paymentMethod" className="text-sm font-medium">Método de Pagamento Padrão</Label>
               <Select value={defaultPaymentMethod} onValueChange={setDefaultPaymentMethod}>
-                <SelectTrigger>
+                <SelectTrigger className="rounded-xl">
                   <SelectValue placeholder="Selecione um método" />
                 </SelectTrigger>
                 <SelectContent>
@@ -203,14 +235,19 @@ export default function Settings() {
         </Card>
 
         {/* Account Card */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur">
+        <Card className="glass-card">
           <CardHeader>
-            <CardTitle>Conta</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-primary" />
+              Conta
+            </CardTitle>
             <CardDescription>Informações da sua conta</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-              <Mail className="h-5 w-5 text-muted-foreground" />
+            <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center">
+                <Mail className="h-5 w-5 text-primary" />
+              </div>
               <div>
                 <p className="text-sm text-muted-foreground">Email</p>
                 <p className="font-medium">{user?.email}</p>
@@ -220,8 +257,12 @@ export default function Settings() {
         </Card>
 
         {/* Save Button */}
-        <Button onClick={handleSave} disabled={isSaving} className="w-full">
-          <Save className="h-4 w-4 mr-2" />
+        <Button 
+          onClick={handleSave} 
+          disabled={isSaving} 
+          className="w-full h-12 text-base font-medium rounded-xl"
+        >
+          <Save className="h-5 w-5 mr-2" />
           {isSaving ? 'Salvando...' : 'Salvar Alterações'}
         </Button>
       </div>
