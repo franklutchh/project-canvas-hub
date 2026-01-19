@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Plus, Trash2, Calendar, Edit2, Check, X } from 'lucide-react';
+import { Plus, Trash2, Calendar, Edit2, Check, X, Video, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 interface MeetingsTabProps {
   projectId: string;
@@ -40,13 +41,18 @@ export function MeetingsTab({ projectId }: MeetingsTabProps) {
   return (
     <div className="space-y-4">
       {!isAdding ? (
-        <Button onClick={() => setIsAdding(true)} variant="outline" className="w-full">
-          <Plus className="mr-2 h-4 w-4" />
+        <Button 
+          onClick={() => setIsAdding(true)} 
+          variant="glass" 
+          className="w-full gap-2 py-6 border-dashed hover:border-primary/50"
+        >
+          <Plus className="h-4 w-4" />
           Nova Reunião
         </Button>
       ) : (
-        <Card className="border-primary/50">
-          <CardContent className="space-y-4 pt-4">
+        <Card className="glass-card border-primary/30 overflow-hidden animate-fade-in">
+          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary to-primary/70" />
+          <CardContent className="space-y-4 pt-6">
             <Input
               type="datetime-local"
               value={newDate}
@@ -62,34 +68,52 @@ export function MeetingsTab({ projectId }: MeetingsTabProps) {
               <Button variant="ghost" onClick={() => setIsAdding(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleAdd}>Salvar</Button>
+              <Button variant="premium" onClick={handleAdd}>Salvar</Button>
             </div>
           </CardContent>
         </Card>
       )}
 
       <div className="space-y-3">
-        {meetings.map((meeting) => (
-          <Card key={meeting.id} className="border-border/50">
+        {meetings.map((meeting, index) => (
+          <Card 
+            key={meeting.id} 
+            className={cn(
+              "glass-card group transition-all duration-300 animate-fade-in",
+              editingId === meeting.id && "ring-1 ring-primary/30"
+            )}
+            style={{ animationDelay: `${index * 50}ms` }}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Calendar className="h-4 w-4" />
-                {format(new Date(meeting.date), "d 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5">
+                  <Video className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">
+                    {format(new Date(meeting.date), "d 'de' MMMM", { locale: ptBR })}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    às {format(new Date(meeting.date), "HH:mm", { locale: ptBR })}
+                  </p>
+                </div>
               </div>
-              <div className="flex gap-1">
+              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 {editingId === meeting.id ? (
                   <>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => handleUpdate(meeting.id)}
+                      className="h-8 w-8 hover:bg-emerald-500/10"
                     >
-                      <Check className="h-4 w-4 text-success" />
+                      <Check className="h-4 w-4 text-emerald-500" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => setEditingId(null)}
+                      className="h-8 w-8"
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -103,6 +127,7 @@ export function MeetingsTab({ projectId }: MeetingsTabProps) {
                         setEditingId(meeting.id);
                         setEditNotes(meeting.notes || '');
                       }}
+                      className="h-8 w-8"
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>
@@ -110,6 +135,7 @@ export function MeetingsTab({ projectId }: MeetingsTabProps) {
                       variant="ghost"
                       size="icon"
                       onClick={() => deleteMeeting.mutate(meeting.id)}
+                      className="h-8 w-8 hover:bg-destructive/10"
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
@@ -117,24 +143,34 @@ export function MeetingsTab({ projectId }: MeetingsTabProps) {
                 )}
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               {editingId === meeting.id ? (
                 <Textarea
                   value={editNotes}
                   onChange={(e) => setEditNotes(e.target.value)}
                   rows={4}
+                  autoFocus
                 />
               ) : (
-                <p className="whitespace-pre-wrap text-sm">{meeting.notes}</p>
+                <div className="flex gap-3">
+                  <MessageSquare className="h-4 w-4 text-muted-foreground/50 mt-0.5 shrink-0" />
+                  <p className="whitespace-pre-wrap text-sm text-muted-foreground">{meeting.notes}</p>
+                </div>
               )}
             </CardContent>
           </Card>
         ))}
 
         {meetings.length === 0 && !isAdding && (
-          <p className="py-8 text-center text-muted-foreground">
-            Nenhuma reunião registrada.
-          </p>
+          <div className="glass-card rounded-2xl py-12 text-center">
+            <div className="flex justify-center mb-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-muted/50 to-muted/20">
+                <Video className="h-8 w-8 text-muted-foreground/50" />
+              </div>
+            </div>
+            <p className="text-muted-foreground">Nenhuma reunião registrada.</p>
+            <p className="text-sm text-muted-foreground/70 mt-1">Registre suas reuniões para manter o histórico.</p>
+          </div>
         )}
       </div>
     </div>

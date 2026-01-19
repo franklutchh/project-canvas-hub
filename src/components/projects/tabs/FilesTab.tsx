@@ -2,9 +2,10 @@ import { useRef } from 'react';
 import { useProjectFiles } from '@/hooks/useProjectFiles';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Upload, File, Image, FileText, Trash2, Download, Loader2 } from 'lucide-react';
+import { Upload, File, Image, FileText, Trash2, Download, Loader2, FolderOpen } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 interface FilesTabProps {
   projectId: string;
@@ -39,39 +40,45 @@ export function FilesTab({ projectId }: FilesTabProps) {
       
       <Button
         onClick={() => inputRef.current?.click()}
-        variant="outline"
-        className="w-full"
+        variant="glass"
+        className="w-full gap-2 py-6 border-dashed hover:border-primary/50"
         disabled={uploadFile.isPending}
       >
         {uploadFile.isPending ? (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
-          <Upload className="mr-2 h-4 w-4" />
+          <Upload className="h-4 w-4" />
         )}
         Enviar Arquivo
       </Button>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        {files.map((file) => {
+        {files.map((file, index) => {
           const Icon = getFileIcon(file.type);
           const isImage = file.type?.startsWith('image/');
 
           return (
-            <Card key={file.id} className="overflow-hidden border-border/50">
+            <Card 
+              key={file.id} 
+              className={cn(
+                "glass-card group overflow-hidden transition-all duration-300 hover:shadow-glow-sm animate-fade-in"
+              )}
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
               {isImage && (
-                <div className="aspect-video overflow-hidden bg-muted">
+                <div className="aspect-video overflow-hidden bg-muted/30">
                   <img
                     src={file.url}
                     alt={file.name}
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 </div>
               )}
               <CardContent className="p-3">
                 <div className="flex items-start gap-3">
                   {!isImage && (
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-                      <Icon className="h-5 w-5 text-muted-foreground" />
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5">
+                      <Icon className="h-6 w-6 text-primary" />
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
@@ -80,11 +87,12 @@ export function FilesTab({ projectId }: FilesTabProps) {
                       {format(new Date(file.created_at), "d 'de' MMM", { locale: ptBR })}
                     </p>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       variant="ghost"
                       size="icon"
                       asChild
+                      className="h-8 w-8"
                     >
                       <a href={file.url} target="_blank" rel="noopener noreferrer" download>
                         <Download className="h-4 w-4" />
@@ -94,6 +102,7 @@ export function FilesTab({ projectId }: FilesTabProps) {
                       variant="ghost"
                       size="icon"
                       onClick={() => deleteFile.mutate({ id: file.id, url: file.url })}
+                      className="h-8 w-8 hover:bg-destructive/10"
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
@@ -106,9 +115,15 @@ export function FilesTab({ projectId }: FilesTabProps) {
       </div>
 
       {files.length === 0 && (
-        <p className="py-8 text-center text-muted-foreground">
-          Nenhum arquivo enviado.
-        </p>
+        <div className="glass-card rounded-2xl py-12 text-center">
+          <div className="flex justify-center mb-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-muted/50 to-muted/20">
+              <FolderOpen className="h-8 w-8 text-muted-foreground/50" />
+            </div>
+          </div>
+          <p className="text-muted-foreground">Nenhum arquivo enviado.</p>
+          <p className="text-sm text-muted-foreground/70 mt-1">Faça upload de arquivos do projeto.</p>
+        </div>
       )}
     </div>
   );
