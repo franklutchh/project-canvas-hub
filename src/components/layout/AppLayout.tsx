@@ -11,9 +11,19 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Subtle background pattern */}
+      <div 
+        className="fixed inset-0 pointer-events-none opacity-30"
+        style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, hsl(225 12% 15%) 1px, transparent 0)`,
+          backgroundSize: '40px 40px',
+        }}
+      />
+      
       {isMobile ? <MobileSidebar /> : <Sidebar />}
-      <main className={isMobile ? 'pt-16 px-4' : 'pl-64'}>
-        <div className={isMobile ? 'py-4' : 'container py-8'}>
+      
+      <main className={isMobile ? 'pt-20 px-4 pb-8' : 'pl-64'}>
+        <div className={isMobile ? 'animate-fade-in' : 'container py-8 animate-fade-in'}>
           {children}
         </div>
       </main>

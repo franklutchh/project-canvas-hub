@@ -19,11 +19,22 @@ export function ProjectCard({ project, tags = [] }: ProjectCardProps) {
 
   return (
     <Link to={`/projects/${project.id}`}>
-      <Card className="group relative overflow-hidden border-border/50 bg-card hover:border-border hover:shadow-lg transition-all duration-300">
-        {/* Color accent bar */}
+      <Card className="group relative overflow-hidden glass-card hover-lift cursor-pointer">
+        {/* Color accent bar with glow */}
         <div 
-          className="absolute left-0 top-0 h-full w-1 transition-all group-hover:w-1.5"
-          style={{ backgroundColor: project.visual_identity }}
+          className="absolute left-0 top-0 h-full w-1 transition-all duration-300 group-hover:w-1.5"
+          style={{ 
+            backgroundColor: project.visual_identity,
+            boxShadow: `0 0 20px ${project.visual_identity}60`
+          }}
+        />
+        
+        {/* Top edge glow on hover */}
+        <div 
+          className="absolute top-0 left-0 right-0 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          style={{
+            background: `linear-gradient(90deg, transparent, ${project.visual_identity}80, transparent)`,
+          }}
         />
         
         <CardContent className="p-5 pl-6">
@@ -70,7 +81,7 @@ export function ProjectCard({ project, tags = [] }: ProjectCardProps) {
             </div>
             
             <Badge 
-              variant="outline" 
+              variant="glass" 
               className={`shrink-0 ${STATUS_COLORS[project.status]}`}
             >
               {STATUS_LABELS[project.status]}
@@ -84,13 +95,13 @@ export function ProjectCard({ project, tags = [] }: ProjectCardProps) {
                 {format(new Date(project.created_at), "d 'de' MMM", { locale: ptBR })}
               </span>
               {project.budget_value && (
-                <span className="font-medium text-foreground/80">
+                <span className="font-medium text-emerald-400">
                   R$ {project.budget_value.toLocaleString('pt-BR')}
                 </span>
               )}
             </div>
             
-            <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+            <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-primary group-hover:translate-x-1 transition-all" />
           </div>
         </CardContent>
       </Card>

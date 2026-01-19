@@ -10,14 +10,14 @@ interface KanbanColumnProps {
 
 export function KanbanColumn({ status, projects, projectTags }: KanbanColumnProps) {
   return (
-    <div className="flex-shrink-0 w-72 bg-muted/30 rounded-lg flex flex-col max-h-[calc(100vh-16rem)]">
+    <div className="flex-shrink-0 w-72 glass-card rounded-2xl flex flex-col max-h-[calc(100vh-16rem)] overflow-hidden">
       {/* Header */}
-      <div className="p-3 border-b border-border/50">
+      <div className="p-4 border-b border-white/[0.06]">
         <div className="flex items-center justify-between">
-          <span className={`px-2 py-1 rounded text-sm font-medium border ${STATUS_COLORS[status]}`}>
+          <span className={`px-3 py-1.5 rounded-lg text-sm font-medium border ${STATUS_COLORS[status]}`}>
             {STATUS_LABELS[status]}
           </span>
-          <span className="text-sm text-muted-foreground bg-background px-2 py-0.5 rounded-full">
+          <span className="text-sm text-muted-foreground bg-white/[0.05] px-2.5 py-1 rounded-full">
             {projects.length}
           </span>
         </div>
@@ -30,8 +30,8 @@ export function KanbanColumn({ status, projects, projectTags }: KanbanColumnProp
             ref={provided.innerRef}
             {...provided.droppableProps}
             className={`
-              flex-1 p-2 space-y-2 overflow-y-auto min-h-[100px]
-              transition-colors duration-200
+              flex-1 p-3 space-y-3 overflow-y-auto min-h-[100px]
+              transition-colors duration-300
               ${snapshot.isDraggingOver ? 'bg-primary/5' : ''}
             `}
           >
