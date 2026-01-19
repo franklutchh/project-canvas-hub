@@ -2,7 +2,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, Legend } from 'recharts';
-import { TrendingUp, DollarSign, Briefcase, Calendar } from 'lucide-react';
+import { TrendingUp, DollarSign, Briefcase, Calendar, Sparkles } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Analytics() {
@@ -28,16 +28,15 @@ export default function Analytics() {
   if (isLoading) {
     return (
       <AppLayout>
-        <div className="space-y-6">
-          <h1 className="text-2xl font-bold">Analytics</h1>
+        <div className="space-y-8">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold">Analytics</h1>
+            <p className="text-muted-foreground">Carregando dados...</p>
+          </div>
           <div className="grid gap-4 md:grid-cols-4">
             {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-32" />
+              <Skeleton key={i} className="h-32 rounded-2xl" />
             ))}
-          </div>
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Skeleton className="h-80" />
-            <Skeleton className="h-80" />
           </div>
         </div>
       </AppLayout>
@@ -49,52 +48,51 @@ export default function Analytics() {
       title: 'Faturamento Total',
       value: formatCurrency(totalRevenue),
       icon: DollarSign,
-      color: 'text-emerald-500',
-      bgColor: 'bg-emerald-500/10',
+      gradient: 'from-emerald-500 to-teal-600',
     },
     {
       title: 'Média por Projeto',
       value: formatCurrency(averageRevenue),
       icon: TrendingUp,
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-500/10',
+      gradient: 'from-blue-500 to-cyan-600',
     },
     {
       title: 'Projetos este Mês',
       value: currentMonthProjects.toString(),
       icon: Calendar,
-      color: 'text-amber-500',
-      bgColor: 'bg-amber-500/10',
+      gradient: 'from-amber-500 to-orange-600',
     },
     {
       title: 'Receita este Mês',
       value: formatCurrency(currentMonthRevenue),
       icon: Briefcase,
-      color: 'text-purple-500',
-      bgColor: 'bg-purple-500/10',
+      gradient: 'from-purple-500 to-pink-600',
     },
   ];
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Analytics</h1>
+      <div className="space-y-8">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">Analytics</h1>
+            <Sparkles className="h-5 w-5 text-primary animate-pulse-glow" />
+          </div>
           <p className="text-muted-foreground">Visão geral do desempenho dos seus projetos</p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => (
-            <Card key={stat.title} className="border-border/50 bg-card/50 backdrop-blur">
+          {stats.map((stat, index) => (
+            <Card key={stat.title} className="glass-card hover-lift group" style={{ animationDelay: `${index * 100}ms` }}>
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <div className={`p-3 rounded-xl ${stat.bgColor}`}>
-                    <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                  <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.gradient} shadow-lg group-hover:shadow-glow transition-shadow`}>
+                    <stat.icon className="h-5 w-5 text-white" />
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">{stat.title}</p>
-                    <p className="text-xl font-bold text-foreground">{stat.value}</p>
+                    <p className="text-xl font-bold">{stat.value}</p>
                   </div>
                 </div>
               </CardContent>
@@ -104,16 +102,17 @@ export default function Analytics() {
 
         {/* Highest Project */}
         {highestProject && highestProject.budget_value && (
-          <Card className="border-primary/20 bg-primary/5">
-            <CardContent className="p-6">
+          <Card className="glass-card border-primary/20 overflow-hidden relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent" />
+            <CardContent className="p-6 relative">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Maior Projeto</p>
-                  <p className="text-lg font-semibold text-foreground">{highestProject.name}</p>
+                  <p className="text-lg font-semibold">{highestProject.name}</p>
                   <p className="text-sm text-muted-foreground">{highestProject.client_name}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-primary">
+                  <p className="text-2xl font-bold gradient-premium">
                     {formatCurrency(highestProject.budget_value)}
                   </p>
                 </div>
@@ -124,8 +123,7 @@ export default function Analytics() {
 
         {/* Charts */}
         <div className="grid gap-6 lg:grid-cols-2">
-          {/* Projects by Month */}
-          <Card className="border-border/50 bg-card/50 backdrop-blur">
+          <Card className="glass-card">
             <CardHeader>
               <CardTitle className="text-lg">Projetos por Mês</CardTitle>
             </CardHeader>
@@ -133,26 +131,25 @@ export default function Analytics() {
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={projectsByMonth}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(225 12% 20%)" />
+                    <XAxis dataKey="month" stroke="hsl(225 10% 50%)" fontSize={12} />
+                    <YAxis stroke="hsl(225 10% 50%)" fontSize={12} />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: 'hsl(var(--card))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px',
+                        backgroundColor: 'hsl(225 15% 8%)',
+                        border: '1px solid hsl(225 12% 20%)',
+                        borderRadius: '12px',
+                        backdropFilter: 'blur(20px)',
                       }}
-                      labelStyle={{ color: 'hsl(var(--foreground))' }}
                     />
-                    <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Projetos" />
+                    <Bar dataKey="count" fill="hsl(265 85% 60%)" radius={[6, 6, 0, 0]} name="Projetos" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
 
-          {/* Revenue by Month */}
-          <Card className="border-border/50 bg-card/50 backdrop-blur">
+          <Card className="glass-card">
             <CardHeader>
               <CardTitle className="text-lg">Faturamento Mensal</CardTitle>
             </CardHeader>
@@ -160,37 +157,25 @@ export default function Analytics() {
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={revenueByMonth}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                    <YAxis 
-                      stroke="hsl(var(--muted-foreground))" 
-                      fontSize={12}
-                      tickFormatter={(value) => `R$${(value / 1000).toFixed(0)}k`}
-                    />
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(225 12% 20%)" />
+                    <XAxis dataKey="month" stroke="hsl(225 10% 50%)" fontSize={12} />
+                    <YAxis stroke="hsl(225 10% 50%)" fontSize={12} tickFormatter={(value) => `R$${(value / 1000).toFixed(0)}k`} />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: 'hsl(var(--card))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px',
+                        backgroundColor: 'hsl(225 15% 8%)',
+                        border: '1px solid hsl(225 12% 20%)',
+                        borderRadius: '12px',
                       }}
-                      labelStyle={{ color: 'hsl(var(--foreground))' }}
                       formatter={(value: number) => [formatCurrency(value), 'Receita']}
                     />
-                    <Area 
-                      type="monotone" 
-                      dataKey="revenue" 
-                      stroke="hsl(160, 84%, 39%)" 
-                      fill="hsl(160, 84%, 39%, 0.2)" 
-                      name="Receita"
-                    />
+                    <Area type="monotone" dataKey="revenue" stroke="hsl(160 84% 39%)" fill="hsl(160 84% 39% / 0.2)" name="Receita" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
 
-          {/* Status Distribution */}
-          <Card className="border-border/50 bg-card/50 backdrop-blur lg:col-span-2">
+          <Card className="glass-card lg:col-span-2">
             <CardHeader>
               <CardTitle className="text-lg">Distribuição por Status</CardTitle>
             </CardHeader>
@@ -213,13 +198,7 @@ export default function Analytics() {
                       ))}
                     </Pie>
                     <Legend />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'hsl(var(--card))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px',
-                      }}
-                    />
+                    <Tooltip contentStyle={{ backgroundColor: 'hsl(225 15% 8%)', border: '1px solid hsl(225 12% 20%)', borderRadius: '12px' }} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
