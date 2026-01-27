@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { Project, ProjectStatus } from '@/types/database';
 import { toast } from '@/hooks/use-toast';
+import { logProjectActivity } from './useActivityLogs';
 
 export function useProjects() {
   const { user } = useAuth();
@@ -33,11 +34,15 @@ export function useProjects() {
         .single();
       
       if (error) throw error;
-      return data;
+      return data as Project;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       toast({ title: 'Projeto criado com sucesso!' });
+      // Log activity
+      if (user) {
+        logProjectActivity(data.id, user.id, 'created', `Projeto "${data.name}" criado`);
+      }
     },
     onError: (error) => {
       toast({ title: 'Erro ao criar projeto', description: error.message, variant: 'destructive' });
@@ -46,6 +51,13 @@ export function useProjects() {
 
   const updateProject = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Project> & { id: string }) => {
+      // Get current project data for comparison
+      const { data: currentProject } = await supabase
+        .from('projects')
+        .select('status, name')
+        .eq('id', id)
+        .single();
+
       const { data, error } = await supabase
         .from('projects')
         .update(updates)
@@ -54,11 +66,23 @@ export function useProjects() {
         .single();
       
       if (error) throw error;
-      return data;
+      return { ...data, _previousStatus: currentProject?.status } as Project & { _previousStatus?: string };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       toast({ title: 'Projeto atualizado!' });
+      // Log activity
+      if (user) {
+        const previousStatus = (data as any)._previousStatus;
+        if (previousStatus && previousStatus !== data.status) {
+          logProjectActivity(data.id, user.id, 'status_changed', `Status alterado de "${previousStatus}" para "${data.status}"`, {
+            old_status: previousStatus,
+            new_status: data.status,
+          });
+        } else {
+          logProjectActivity(data.id, user.id, 'updated', `Projeto "${data.name}" atualizado`);
+        }
+      }
     },
     onError: (error) => {
       toast({ title: 'Erro ao atualizar projeto', description: error.message, variant: 'destructive' });

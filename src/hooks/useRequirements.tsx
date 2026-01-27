@@ -2,8 +2,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ProjectRequirement } from '@/types/database';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from './useAuth';
+import { logProjectActivity } from './useActivityLogs';
 
 export function useRequirements(projectId: string | undefined) {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: requirements = [], isLoading } = useQuery({
@@ -31,10 +34,15 @@ export function useRequirements(projectId: string | undefined) {
         .single();
       
       if (error) throw error;
-      return data;
+      return data as ProjectRequirement;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['requirements', projectId] });
+      toast({ title: `Requisito "${data.title}" adicionado!` });
+      // Log activity
+      if (user && projectId) {
+        logProjectActivity(projectId, user.id, 'requirement_added', `Requisito "${data.title}" adicionado`);
+      }
     },
     onError: (error) => {
       toast({ title: 'Erro ao criar requisito', description: error.message, variant: 'destructive' });
@@ -88,10 +96,17 @@ export function useRequirements(projectId: string | undefined) {
         .single();
       
       if (error) throw error;
-      return data;
+      return data as ProjectRequirement;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['requirements', projectId] });
+      // Log activity
+      if (user && projectId) {
+        const action = data.completed ? 'concluído' : 'reaberto';
+        logProjectActivity(projectId, user.id, 'requirement_completed', `Requisito "${data.title}" ${action}`, {
+          completed: data.completed,
+        });
+      }
     },
   });
 

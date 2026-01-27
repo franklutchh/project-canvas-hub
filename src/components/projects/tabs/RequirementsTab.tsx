@@ -177,7 +177,7 @@ export function RequirementsTab({ projectId }: RequirementsTabProps) {
                 <CollapsibleContent>
                   <div className="px-4 pb-4 pt-0 border-t border-border/30">
                     <div className="pt-4">
-                      <RequirementComments requirementId={req.id} />
+                      <RequirementComments requirementId={req.id} projectId={projectId} />
                     </div>
                   </div>
                 </CollapsibleContent>
