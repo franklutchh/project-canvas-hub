@@ -1,248 +1,164 @@
 
-## Plano de Potencializacao Avancada do DevClient Pro
+## Plano de Continuacao da Potencializacao do DevClient Pro
 
 ### Visao Geral
 
-Continuando a transformacao do sistema, esta fase implementara:
-1. **Skeleton Loaders Premium** - Loading states elegantes sem forcar tela de loading
-2. **Pagina 404 Premium** - Redesign completo da pagina NotFound
-3. **Sistema de Busca Global** - Command Palette com Cmd+K
-4. **Notificacoes em Tempo Real** - Sistema de alertas com badge no header
-5. **Timeline de Atividades** - Historico de acoes por projeto
-6. **Melhorias de UX** - Atalhos de teclado e microinteracoes
+Esta fase implementara tres melhorias principais:
+1. **Log Automatico de Atividades** - Registrar automaticamente todas as acoes em todos os hooks
+2. **Sistema de Comentarios Premium** - Redesign do RequirementComments com glassmorphism
+3. **Notificacoes no Mobile** - Adicionar dropdown de notificacoes na sidebar mobile
 
 ---
 
-### FASE 1: Skeleton Loaders Premium
+### FASE 1: Log Automatico de Atividades
 
-**1.1 - Novo Componente (src/components/ui/skeleton-card.tsx)**
+Adicionar chamadas automaticas do `logProjectActivity` em todos os hooks quando acoes sao realizadas.
 
-Skeleton loader customizado para cards de projeto:
-- Animacao shimmer premium com gradiente metalico
-- Formato que espelha o ProjectCard real
-- Transicao suave para conteudo carregado
+**1.1 - useProjects.tsx**
 
-**1.2 - Skeleton para Stats (src/components/ui/skeleton-stats.tsx)**
+Atualizar para registrar:
+- Projeto criado: `action_type: 'created'`, descricao com nome do projeto
+- Projeto atualizado: `action_type: 'updated'` ou `action_type: 'status_changed'` (com metadata do status antigo/novo)
 
-Skeleton para os cards de estatisticas:
-- 4 cards com shimmer sincronizado
-- Altura e espacamento identicos aos reais
+Importar: `logProjectActivity` de `./useActivityLogs`
 
-**1.3 - Atualizacao do Dashboard**
-
-Substituir PremiumLoader por skeletons contextuais:
-- Mostrar skeleton de stats + skeleton de cards
-- Transicao instantanea para dados reais
-- Experiencia mais fluida sem tela bloqueante
-
----
-
-### FASE 2: Pagina 404 Premium
-
-**Redesign completo (src/pages/NotFound.tsx)**
-
-Elementos:
-- Background com gradiente radial e efeitos de particulas animadas
-- Numero "404" gigante com gradiente metalico
-- Icone animado flutuante (Compass ou Globe)
-- Mensagem em portugues com tom amigavel
-- Botoes glass para "Voltar" e "Ir ao Dashboard"
-- Animacoes de entrada staggered
-
----
-
-### FASE 3: Sistema de Busca Global
-
-**3.1 - Novo Componente (src/components/search/GlobalSearch.tsx)**
-
-Command Palette usando cmdk (ja instalado):
-- Ativar com Cmd+K ou Ctrl+K
-- Buscar projetos por nome, cliente, empresa
-- Buscar requisitos por titulo
-- Navegacao rapida entre paginas
-- Historico de buscas recentes (localStorage)
-- Design glass com backdrop blur
-
-**3.2 - Integracao no AppLayout**
-
-Adicionar:
-- Listener de teclado global para Cmd+K
-- Indicador visual no header/sidebar
-- Shortcut hint sutil
-
-**3.3 - Hook de Busca (src/hooks/useGlobalSearch.tsx)**
-
-Funcionalidades:
-- Busca em projetos carregados
-- Busca em requisitos (lazy load)
-- Debounce de 150ms
-- Ordenacao por relevancia
-
----
-
-### FASE 4: Sistema de Notificacoes
-
-**4.1 - Migracao de Banco de Dados**
-
-Nova tabela `notifications`:
 ```text
-id: uuid (PK)
-user_id: uuid (FK to auth.users, NOT NULL)
-type: text (comment, deadline, status_change)
-title: text (NOT NULL)
-message: text
-read: boolean (default false)
-project_id: uuid (nullable, FK to projects)
-created_at: timestamp
+onSuccess para createProject:
+  -> logProjectActivity(data.id, user.id, 'created', 'Projeto criado')
+
+onSuccess para updateProject:
+  -> Se status mudou: logProjectActivity(..., 'status_changed', 'Status alterado', { old_status, new_status })
+  -> Senao: logProjectActivity(..., 'updated', 'Projeto atualizado')
 ```
 
-RLS Policies:
-- SELECT: user_id = auth.uid()
-- UPDATE: user_id = auth.uid()
-- DELETE: user_id = auth.uid()
+**1.2 - useRequirements.tsx**
 
-Enable realtime para updates instantaneos.
+Atualizar para registrar:
+- Requisito criado: `action_type: 'requirement_added'`
+- Requisito completado/descompletado: `action_type: 'requirement_completed'`
 
-**4.2 - Hook de Notificacoes (src/hooks/useNotifications.tsx)**
+Precisa receber `projectId` nas callbacks e passar para log.
 
-Funcionalidades:
-- Query de notificacoes nao lidas
-- Mutation para marcar como lida
-- Subscription realtime para novas notificacoes
-- Contagem de nao lidas
+**1.3 - useMeetings.tsx**
 
-**4.3 - Componente Dropdown (src/components/notifications/NotificationDropdown.tsx)**
+Atualizar para registrar:
+- Reuniao criada: `action_type: 'meeting_added'`
 
-Design premium:
-- Icone de sino com badge contador animado (pulse)
-- Dropdown glass com lista de notificacoes
-- Items com icone por tipo, titulo, tempo relativo
-- Botao "Marcar todas como lidas"
-- Estado vazio elegante
+**1.4 - useProjectFiles.tsx**
 
-**4.4 - Integracao na Sidebar**
+Atualizar para registrar:
+- Arquivo enviado: `action_type: 'file_uploaded'` com metadata do nome do arquivo
+- Arquivo excluido: `action_type: 'file_deleted'`
 
-Adicionar notificacao dropdown:
-- Posicionar proximo ao usuario
-- Badge visivel quando ha nao lidas
+**1.5 - useRequirementComments.tsx**
+
+Atualizar para registrar:
+- Comentario adicionado: `action_type: 'comment_added'`
+
+Requer passar `projectId` como parametro adicional.
 
 ---
 
-### FASE 5: Timeline de Atividades
+### FASE 2: Comentarios Premium (RequirementComments.tsx)
 
-**5.1 - Migracao de Banco de Dados**
+Redesign completo com o design system iOS 26:
 
-Nova tabela `activity_logs`:
+- Cards glass para cada comentario (`glass-card rounded-xl`)
+- Avatar com container gradiente ou inicial
+- Input/Textarea com estilo glass e borda sutil
+- Botao Send premium com hover glow
+- Animacoes de entrada staggered nos comentarios
+- Transicoes hover refinadas
+
+Elementos visuais:
 ```text
-id: uuid (PK)
-project_id: uuid (FK to projects, NOT NULL)
-user_id: uuid (NOT NULL)
-action_type: text (created, updated, status_changed, file_uploaded, comment_added)
-description: text (NOT NULL)
-metadata: jsonb (dados extras como {old_status, new_status})
-created_at: timestamp
+- Container: glass-card p-4 rounded-2xl
+- Comentarios: bg-white/[0.03] hover:bg-white/[0.05] rounded-xl
+- Avatar: h-9 w-9 rounded-xl bg-gradient-to-br from-primary/20 to-purple-600/20
+- Input: glass-card border-white/[0.08]
+- Botao: bg-primary hover:shadow-glow transition
 ```
 
-RLS Policies:
-- SELECT: project owner only
-- INSERT: project owner only
+---
 
-**5.2 - Hook de Atividades (src/hooks/useActivityLogs.tsx)**
+### FASE 3: Notificacoes no MobileSidebar
 
-Funcionalidades:
-- Query de atividades por projeto
-- Paginacao ou infinite scroll
-- Mutation para criar log
+Adicionar o NotificationDropdown na sidebar mobile para paridade de funcionalidades.
 
-**5.3 - Componente Timeline (src/components/projects/ActivityTimeline.tsx)**
-
-Design:
-- Linha vertical conectando items
-- Circulos com icones por tipo de acao
-- Cards glass com descricao e timestamp
-- Avatar do usuario (se disponivel)
-- Animacao de entrada escalonada
-
-**5.4 - Integracao no ProjectDetail**
-
-Adicionar nova tab "Atividades":
-- Mostrar timeline cronologica
-- Filtro por tipo de acao (opcional)
+**Alteracoes:**
+- Importar `NotificationDropdown` de `@/components/notifications/NotificationDropdown`
+- Adicionar botao/area de notificacoes antes da secao do usuario
+- Manter mesmo estilo glass e transicoes
 
 ---
 
-### FASE 6: Melhorias de UX
+### FASE 4: Refinamentos Adicionais
 
-**6.1 - Componente RequirementComments Premium**
+**4.1 - Melhorar Transicoes em Hooks**
 
-Atualizar design:
-- Cards glass para comentarios
-- Avatar com icone ou inicial
-- Input/Textarea com estilo glass
-- Botao Send premium
+Adicionar `onMutate` para optimistic updates onde apropriado para feedback instantaneo.
 
-**6.2 - Atalhos de Teclado Globais**
+**4.2 - Toast Notifications Contextuais**
 
-Implementar no AppLayout:
-- `N`: Ir para Novo Projeto
-- `/` ou `Cmd+K`: Abrir busca
-- `G+D`: Ir para Dashboard
-- `G+A`: Ir para Analytics
-- `G+S`: Ir para Settings
-- `?`: Mostrar modal de atalhos
-
-**6.3 - Modal de Atalhos (src/components/ui/keyboard-shortcuts-modal.tsx)**
-
-Design:
-- Lista formatada de atalhos
-- Teclas estilizadas como badges
-- Abrir com tecla "?"
+Tornar mensagens de toast mais descritivas:
+- "Requisito 'Nome do requisito' adicionado"
+- "Arquivo 'documento.pdf' enviado com sucesso"
 
 ---
 
-### Resumo de Arquivos
+### Resumo de Arquivos a Modificar
 
-**CRIAR:**
-1. `src/components/ui/skeleton-card.tsx` - Skeleton para ProjectCard
-2. `src/components/ui/skeleton-stats.tsx` - Skeleton para Stats
-3. `src/components/search/GlobalSearch.tsx` - Command Palette
-4. `src/hooks/useGlobalSearch.tsx` - Hook de busca
-5. `src/components/notifications/NotificationDropdown.tsx` - Dropdown de notificacoes
-6. `src/hooks/useNotifications.tsx` - Hook de notificacoes
-7. `src/components/projects/ActivityTimeline.tsx` - Timeline de atividades
-8. `src/hooks/useActivityLogs.tsx` - Hook de atividades
-9. `src/components/ui/keyboard-shortcuts-modal.tsx` - Modal de atalhos
+| Arquivo | Alteracao |
+|---------|-----------|
+| `src/hooks/useProjects.tsx` | Adicionar logs de atividade para create/update |
+| `src/hooks/useRequirements.tsx` | Adicionar logs para create/toggle + refatorar para aceitar callbacks |
+| `src/hooks/useMeetings.tsx` | Adicionar log para create |
+| `src/hooks/useProjectFiles.tsx` | Adicionar logs para upload/delete |
+| `src/hooks/useRequirementComments.tsx` | Adicionar log para create + aceitar projectId |
+| `src/components/projects/RequirementComments.tsx` | Redesign premium completo |
+| `src/components/layout/MobileSidebar.tsx` | Adicionar NotificationDropdown |
 
-**ATUALIZAR:**
-1. `src/pages/NotFound.tsx` - Redesign premium 404
-2. `src/pages/Dashboard.tsx` - Usar skeleton loaders
-3. `src/components/layout/Sidebar.tsx` - Adicionar notifications e shortcuts
-4. `src/components/layout/AppLayout.tsx` - Global search e keyboard listeners
-5. `src/pages/ProjectDetail.tsx` - Nova tab Atividades
-6. `src/components/projects/RequirementComments.tsx` - Design premium
-7. `src/types/database.ts` - Tipos para notifications e activity_logs
+---
 
-**MIGRACOES:**
-1. Tabela `notifications` com RLS e realtime
-2. Tabela `activity_logs` com RLS
+### Detalhes Tecnicos
+
+**Importacoes necessarias:**
+```text
+import { logProjectActivity } from './useActivityLogs';
+import { useAuth } from './useAuth'; // onde nao existir
+```
+
+**Padrao de log:**
+```text
+// No onSuccess das mutations:
+logProjectActivity(
+  projectId,
+  user.id,
+  'action_type',
+  'Descricao legivel',
+  { metadata_opcional }
+);
+```
+
+**Nota:** Os logs sao assincronos e nao bloqueiam a UI. Erros de log sao silenciosos (apenas console.error).
 
 ---
 
 ### Ordem de Implementacao
 
-1. Skeletons e 404 (visual, sem dependencias)
-2. Busca Global (melhoria de UX imediata)
-3. Migracoes de banco (notifications, activity_logs)
-4. Sistema de Notificacoes (apos migracao)
-5. Timeline de Atividades (apos migracao)
-6. Atalhos de Teclado (finalizacao)
+1. Atualizar `useProjects.tsx` com logs automaticos
+2. Atualizar `useRequirements.tsx` com logs
+3. Atualizar `useMeetings.tsx` e `useProjectFiles.tsx` com logs
+4. Atualizar `useRequirementComments.tsx` (adicionar projectId e log)
+5. Redesign premium do `RequirementComments.tsx`
+6. Adicionar notificacoes no `MobileSidebar.tsx`
 
 ---
 
-### Principios Mantidos
+### Resultado Esperado
 
-- **Performance First**: Skeletons ao inves de loading blocante
-- **Glassmorphism Consistente**: Todos novos componentes seguem o design system iOS 26
-- **Animacoes Fluidas**: Transicoes de 0.2-0.4s, entrada staggered
-- **Realtime**: Notificacoes instantaneas via Supabase Realtime
-- **Acessibilidade**: Atalhos de teclado e feedback visual
+Apos implementacao:
+- Timeline de atividades sera preenchida automaticamente com todas as acoes do usuario
+- Comentarios terao visual premium consistente com o resto do sistema
+- Mobile tera paridade de funcionalidades com desktop (notificacoes)
+- Experiencia mais rica e profissional em todas as interacoes
