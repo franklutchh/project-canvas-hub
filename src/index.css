@@ -446,3 +446,24 @@
     opacity: 0.8;
   }
 }
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Skeleton Shimmer Premium */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(225 12% 12%) 0%,
+    hsl(225 12% 18%) 50%,
+    hsl(225 12% 12%) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
