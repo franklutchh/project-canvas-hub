@@ -2,8 +2,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ProjectFile } from '@/types/database';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from './useAuth';
+import { logProjectActivity } from './useActivityLogs';
 
 export function useProjectFiles(projectId: string | undefined) {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: files = [], isLoading } = useQuery({
@@ -53,9 +56,16 @@ export function useProjectFiles(projectId: string | undefined) {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['project-files', projectId] });
-      toast({ title: 'Arquivo enviado!' });
+      toast({ title: `Arquivo "${data.name}" enviado!` });
+      // Log activity
+      if (user && projectId) {
+        logProjectActivity(projectId, user.id, 'file_uploaded', `Arquivo "${data.name}" enviado`, {
+          file_name: data.name,
+          file_type: data.type,
+        });
+      }
     },
     onError: (error) => {
       toast({ title: 'Erro ao enviar arquivo', description: error.message, variant: 'destructive' });
@@ -63,7 +73,7 @@ export function useProjectFiles(projectId: string | undefined) {
   });
 
   const deleteFile = useMutation({
-    mutationFn: async ({ id, url }: { id: string; url: string }) => {
+    mutationFn: async ({ id, url, name }: { id: string; url: string; name: string }) => {
       // Extract file path from URL
       const urlParts = url.split('/project-files/');
       if (urlParts.length > 1) {
@@ -77,10 +87,17 @@ export function useProjectFiles(projectId: string | undefined) {
         .eq('id', id);
       
       if (error) throw error;
+      return { name };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['project-files', projectId] });
-      toast({ title: 'Arquivo removido!' });
+      toast({ title: `Arquivo "${data.name}" removido!` });
+      // Log activity
+      if (user && projectId) {
+        logProjectActivity(projectId, user.id, 'file_deleted', `Arquivo "${data.name}" removido`, {
+          file_name: data.name,
+        });
+      }
     },
     onError: (error) => {
       toast({ title: 'Erro ao excluir arquivo', description: error.message, variant: 'destructive' });

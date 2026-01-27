@@ -6,6 +6,7 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { NotificationDropdown } from '@/components/notifications/NotificationDropdown';
 import { useState } from 'react';
 
 const navItems = [
@@ -91,6 +92,13 @@ export function MobileSidebar() {
               Novo Projeto
             </Link>
           </nav>
+          {/* Notifications */}
+          <div className="px-4 pb-2">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+              <span className="text-sm font-medium text-muted-foreground">Notificações</span>
+              <NotificationDropdown />
+            </div>
+          </div>
 
           {/* User */}
           <div className="border-t border-white/[0.06] p-4">

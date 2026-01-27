@@ -2,8 +2,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Meeting } from '@/types/database';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from './useAuth';
+import { logProjectActivity } from './useActivityLogs';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export function useMeetings(projectId: string | undefined) {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: meetings = [], isLoading } = useQuery({
@@ -31,11 +36,16 @@ export function useMeetings(projectId: string | undefined) {
         .single();
       
       if (error) throw error;
-      return data;
+      return data as Meeting;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['meetings', projectId] });
-      toast({ title: 'Reunião adicionada!' });
+      const dateStr = format(new Date(data.date), "dd 'de' MMMM", { locale: ptBR });
+      toast({ title: `Reunião para ${dateStr} adicionada!` });
+      // Log activity
+      if (user && projectId) {
+        logProjectActivity(projectId, user.id, 'meeting_added', `Reunião agendada para ${dateStr}`);
+      }
     },
     onError: (error) => {
       toast({ title: 'Erro ao criar reunião', description: error.message, variant: 'destructive' });

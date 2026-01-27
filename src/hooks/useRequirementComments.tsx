@@ -2,8 +2,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { RequirementComment } from '@/types/database';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from './useAuth';
+import { logProjectActivity } from './useActivityLogs';
 
-export function useRequirementComments(requirementId: string | undefined) {
+export function useRequirementComments(requirementId: string | undefined, projectId?: string) {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: comments = [], isLoading } = useQuery({
@@ -31,10 +34,14 @@ export function useRequirementComments(requirementId: string | undefined) {
         .single();
       
       if (error) throw error;
-      return data;
+      return data as RequirementComment;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['requirement-comments', requirementId] });
+      // Log activity
+      if (user && projectId) {
+        logProjectActivity(projectId, user.id, 'comment_added', 'Comentário adicionado em requisito');
+      }
     },
     onError: (error) => {
       toast({ title: 'Erro ao criar comentário', description: error.message, variant: 'destructive' });
