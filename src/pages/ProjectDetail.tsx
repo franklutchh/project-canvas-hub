@@ -3,6 +3,7 @@ import { useProject, useProjects } from '@/hooks/useProjects';
 import { useRequirements } from '@/hooks/useRequirements';
 import { useMeetings } from '@/hooks/useMeetings';
 import { useProjectTags } from '@/hooks/useTags';
+import { useActivityLogs } from '@/hooks/useActivityLogs';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { PremiumLoader } from '@/components/ui/premium-loader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,8 +17,9 @@ import { FilesTab } from '@/components/projects/tabs/FilesTab';
 import { DesignTab } from '@/components/projects/tabs/DesignTab';
 import { BudgetTab } from '@/components/projects/tabs/BudgetTab';
 import { TagSelector } from '@/components/projects/TagSelector';
+import { ActivityTimeline } from '@/components/projects/ActivityTimeline';
 import { STATUS_LABELS, STATUS_COLORS, ProjectStatus } from '@/types/database';
-import { ArrowLeft, Edit, Trash2, User, Mail, Phone, Building2, Download, Share2 } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, User, Mail, Phone, Building2, Download, Share2, Activity } from 'lucide-react';
 import { ShareProjectDialog } from '@/components/projects/ShareProjectDialog';
 import { generateProjectPDF } from '@/lib/generateProjectPDF';
 import { toast } from 'sonner';
@@ -41,6 +43,7 @@ export default function ProjectDetail() {
   const { requirements } = useRequirements(id || '');
   const { meetings } = useMeetings(id || '');
   const { projectTags } = useProjectTags(id || '');
+  const { activities, isLoading: activitiesLoading } = useActivityLogs(id);
 
   if (isLoading) {
     return (
@@ -228,6 +231,10 @@ export default function ProjectDetail() {
               <TabsTrigger value="meetings" className="rounded-lg data-[state=active]:bg-white/[0.1] data-[state=active]:shadow-sm">
                 Reuniões
               </TabsTrigger>
+              <TabsTrigger value="activity" className="rounded-lg data-[state=active]:bg-white/[0.1] data-[state=active]:shadow-sm gap-1.5">
+                <Activity className="h-3.5 w-3.5" />
+                Atividades
+              </TabsTrigger>
             </TabsList>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
@@ -250,6 +257,16 @@ export default function ProjectDetail() {
 
           <TabsContent value="meetings" className="animate-fade-in">
             <MeetingsTab projectId={project.id} />
+          </TabsContent>
+
+          <TabsContent value="activity" className="animate-fade-in">
+            <div className="glass-card rounded-2xl p-6">
+              <div className="flex items-center gap-2 mb-6">
+                <Activity className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold">Histórico de Atividades</h3>
+              </div>
+              <ActivityTimeline activities={activities} isLoading={activitiesLoading} />
+            </div>
           </TabsContent>
         </Tabs>
       </div>

@@ -1,10 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, Plus, LogOut, Settings, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Plus, LogOut, Settings, BarChart3, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { NotificationDropdown } from '@/components/notifications/NotificationDropdown';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/' },
@@ -68,10 +69,34 @@ export function Sidebar() {
             <Plus className="h-4 w-4" />
             Novo Projeto
           </Link>
+          
+          {/* Search hint */}
+          <button
+            onClick={() => {
+              const event = new KeyboardEvent('keydown', {
+                key: 'k',
+                metaKey: true,
+                bubbles: true,
+              });
+              document.dispatchEvent(event);
+            }}
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-white/[0.05] hover:text-foreground transition-all duration-300 w-full"
+          >
+            <Search className="h-4 w-4" />
+            Buscar
+            <kbd className="ml-auto text-[10px] font-mono bg-white/[0.05] px-1.5 py-0.5 rounded">⌘K</kbd>
+          </button>
         </nav>
 
-        {/* User */}
+        {/* Notifications & User */}
         <div className="border-t border-white/[0.06] p-4">
+          {/* Notification Dropdown */}
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs text-muted-foreground">Notificações</span>
+            <NotificationDropdown />
+          </div>
+
+          {/* User section */}
           <Link
             to="/settings"
             className={cn(
@@ -86,7 +111,7 @@ export function Sidebar() {
                   {getInitials()}
                 </AvatarFallback>
               </Avatar>
-              <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-success border-2 border-background" />
+              <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-background" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="truncate text-sm font-medium text-foreground">
