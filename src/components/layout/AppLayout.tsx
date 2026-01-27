@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { MobileSidebar } from './MobileSidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { GlobalSearch } from '@/components/search/GlobalSearch';
+import { KeyboardShortcutsModal } from '@/components/ui/keyboard-shortcuts-modal';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -13,6 +14,8 @@ export function AppLayout({ children }: AppLayoutProps) {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [gPressed, setGPressed] = useState(false);
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -20,6 +23,37 @@ export function AppLayout({ children }: AppLayoutProps) {
       // Ignore if user is typing in an input
       const target = e.target as HTMLElement;
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+
+      // Handle G + key combinations
+      if (gPressed) {
+        switch (e.key.toLowerCase()) {
+          case 'd':
+            e.preventDefault();
+            navigate('/');
+            break;
+          case 'p':
+            e.preventDefault();
+            navigate('/projects');
+            break;
+          case 'a':
+            e.preventDefault();
+            navigate('/analytics');
+            break;
+          case 's':
+            e.preventDefault();
+            navigate('/settings');
+            break;
+        }
+        setGPressed(false);
+        return;
+      }
+
+      // G key starts a combo
+      if (e.key.toLowerCase() === 'g' && !e.metaKey && !e.ctrlKey) {
+        setGPressed(true);
+        setTimeout(() => setGPressed(false), 1000); // Reset after 1 second
         return;
       }
 
@@ -38,7 +72,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [navigate]);
+  }, [navigate, gPressed]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -61,6 +95,9 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       {/* Global Search Command Palette */}
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
+      
+      {/* Keyboard Shortcuts Modal */}
+      <KeyboardShortcutsModal open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
     </div>
   );
 }

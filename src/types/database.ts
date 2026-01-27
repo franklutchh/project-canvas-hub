@@ -82,6 +82,27 @@ export interface RequirementComment {
   created_at: string;
 }
 
+export interface Notification {
+  id: string;
+  user_id: string;
+  type: string;
+  title: string;
+  message: string | null;
+  read: boolean;
+  project_id: string | null;
+  created_at: string;
+}
+
+export interface ActivityLog {
+  id: string;
+  project_id: string;
+  user_id: string;
+  action_type: string;
+  description: string;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+}
+
 export const STATUS_LABELS: Record<ProjectStatus, string> = {
   em_conversa: 'Em Conversa',
   em_desenvolvimento: 'Em Desenvolvimento',
