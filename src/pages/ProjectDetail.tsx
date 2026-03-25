@@ -21,6 +21,7 @@ import { ActivityTimeline } from '@/components/projects/ActivityTimeline';
 import { STATUS_LABELS, STATUS_COLORS, ProjectStatus } from '@/types/database';
 import { ArrowLeft, Edit, Trash2, User, Mail, Phone, Building2, Download, Share2, Activity } from 'lucide-react';
 import { ShareProjectDialog } from '@/components/projects/ShareProjectDialog';
+import { GeneratePRDDialog } from '@/components/projects/GeneratePRDDialog';
 import { generateProjectPDF } from '@/lib/generateProjectPDF';
 import { toast } from 'sonner';
 import {
