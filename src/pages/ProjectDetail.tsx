@@ -173,6 +173,8 @@ export default function ProjectDetail() {
               </SelectContent>
             </Select>
 
+            <GeneratePRDDialog project={project} />
+
             <Button variant="glass" size="icon" onClick={handleExportPDF} title="Exportar PDF" className="rounded-xl">
               <Download className="h-4 w-4" />
             </Button>
