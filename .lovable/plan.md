@@ -1,164 +1,83 @@
 
-## Plano de Continuacao da Potencializacao do DevClient Pro
 
-### Visao Geral
+## Plano: Gerador de PRD com IA integrado ao projeto
 
-Esta fase implementara tres melhorias principais:
-1. **Log Automatico de Atividades** - Registrar automaticamente todas as acoes em todos os hooks
-2. **Sistema de Comentarios Premium** - Redesign do RequirementComments com glassmorphism
-3. **Notificacoes no Mobile** - Adicionar dropdown de notificacoes na sidebar mobile
+### O que sera feito
+
+Adicionar um botao "Gerar PRD com IA" na pagina do projeto que coleta todos os dados do projeto (requisitos, design, orcamento, reunioes, arquivos, tags) e envia para uma Edge Function que usa Lovable AI para gerar um PRD (Product Requirements Document) completo e profissional. O resultado sera exibido em um dialog premium com opcao de copiar ou exportar.
 
 ---
 
-### FASE 1: Log Automatico de Atividades
+### Componentes
 
-Adicionar chamadas automaticas do `logProjectActivity` em todos os hooks quando acoes sao realizadas.
+**1. Edge Function `generate-prd` (`supabase/functions/generate-prd/index.ts`)**
 
-**1.1 - useProjects.tsx**
+- Recebe todos os dados do projeto via POST
+- Monta um prompt detalhado com: info do projeto, cliente, requisitos (completos/pendentes), preferencias de design, orcamento, prazos, reunioes, arquivos, tags
+- Chama Lovable AI (`google/gemini-3-flash-preview`) com prompt de sistema instruindo a gerar um PRD profissional em portugues
+- Retorna o PRD em streaming SSE para exibicao progressiva
+- Trata erros 429/402
 
-Atualizar para registrar:
-- Projeto criado: `action_type: 'created'`, descricao com nome do projeto
-- Projeto atualizado: `action_type: 'updated'` ou `action_type: 'status_changed'` (com metadata do status antigo/novo)
+**2. Componente `GeneratePRDDialog` (`src/components/projects/GeneratePRDDialog.tsx`)**
 
-Importar: `logProjectActivity` de `./useActivityLogs`
+- Dialog premium com glassmorphism
+- Botao de acao com icone Sparkles "Gerar PRD com IA"
+- Estado de loading com animacao
+- Exibe o PRD gerado com markdown renderizado (react-markdown)
+- Botoes: Copiar para clipboard, Gerar novamente
+- Streaming token-by-token para feedback imediato
 
-```text
-onSuccess para createProject:
-  -> logProjectActivity(data.id, user.id, 'created', 'Projeto criado')
+**3. Hook `useGeneratePRD` (`src/hooks/useGeneratePRD.tsx`)**
 
-onSuccess para updateProject:
-  -> Se status mudou: logProjectActivity(..., 'status_changed', 'Status alterado', { old_status, new_status })
-  -> Senao: logProjectActivity(..., 'updated', 'Projeto atualizado')
-```
+- Coleta dados do projeto: project, requirements, meetings, files, tags, comments
+- Monta payload estruturado
+- Gerencia streaming da edge function
+- Estados: idle, generating, done, error
 
-**1.2 - useRequirements.tsx**
+**4. Integracao no `ProjectDetail.tsx`**
 
-Atualizar para registrar:
-- Requisito criado: `action_type: 'requirement_added'`
-- Requisito completado/descompletado: `action_type: 'requirement_completed'`
-
-Precisa receber `projectId` nas callbacks e passar para log.
-
-**1.3 - useMeetings.tsx**
-
-Atualizar para registrar:
-- Reuniao criada: `action_type: 'meeting_added'`
-
-**1.4 - useProjectFiles.tsx**
-
-Atualizar para registrar:
-- Arquivo enviado: `action_type: 'file_uploaded'` com metadata do nome do arquivo
-- Arquivo excluido: `action_type: 'file_deleted'`
-
-**1.5 - useRequirementComments.tsx**
-
-Atualizar para registrar:
-- Comentario adicionado: `action_type: 'comment_added'`
-
-Requer passar `projectId` como parametro adicional.
+- Adicionar botao "Gerar PRD" ao lado dos botoes existentes (Export PDF, Share, Edit)
+- Icone Sparkles com estilo premium/glow
 
 ---
 
-### FASE 2: Comentarios Premium (RequirementComments.tsx)
+### Fluxo do usuario
 
-Redesign completo com o design system iOS 26:
-
-- Cards glass para cada comentario (`glass-card rounded-xl`)
-- Avatar com container gradiente ou inicial
-- Input/Textarea com estilo glass e borda sutil
-- Botao Send premium com hover glow
-- Animacoes de entrada staggered nos comentarios
-- Transicoes hover refinadas
-
-Elementos visuais:
-```text
-- Container: glass-card p-4 rounded-2xl
-- Comentarios: bg-white/[0.03] hover:bg-white/[0.05] rounded-xl
-- Avatar: h-9 w-9 rounded-xl bg-gradient-to-br from-primary/20 to-purple-600/20
-- Input: glass-card border-white/[0.08]
-- Botao: bg-primary hover:shadow-glow transition
-```
+1. Usuario abre um projeto
+2. Clica em "Gerar PRD com IA" (botao com icone Sparkles)
+3. Dialog abre mostrando "Analisando projeto..."
+4. IA analisa todos os dados e gera o PRD em tempo real (streaming)
+5. PRD completo aparece formatado com markdown
+6. Usuario pode copiar ou gerar novamente
 
 ---
 
-### FASE 3: Notificacoes no MobileSidebar
+### Prompt da IA (resumo)
 
-Adicionar o NotificationDropdown na sidebar mobile para paridade de funcionalidades.
-
-**Alteracoes:**
-- Importar `NotificationDropdown` de `@/components/notifications/NotificationDropdown`
-- Adicionar botao/area de notificacoes antes da secao do usuario
-- Manter mesmo estilo glass e transicoes
-
----
-
-### FASE 4: Refinamentos Adicionais
-
-**4.1 - Melhorar Transicoes em Hooks**
-
-Adicionar `onMutate` para optimistic updates onde apropriado para feedback instantaneo.
-
-**4.2 - Toast Notifications Contextuais**
-
-Tornar mensagens de toast mais descritivas:
-- "Requisito 'Nome do requisito' adicionado"
-- "Arquivo 'documento.pdf' enviado com sucesso"
+Sistema instrui a IA a atuar como Product Manager senior e gerar um PRD contendo:
+- Visao geral e objetivos
+- Personas e publico-alvo (inferidos do contexto)
+- Escopo funcional baseado nos requisitos
+- Requisitos nao-funcionais
+- Arquitetura sugerida
+- Design system baseado nas preferencias
+- Cronograma baseado nos prazos
+- Orcamento e modelo de pagamento
+- Riscos e mitigacoes
+- Criterios de aceite por requisito
 
 ---
 
-### Resumo de Arquivos a Modificar
+### Arquivos
 
-| Arquivo | Alteracao |
-|---------|-----------|
-| `src/hooks/useProjects.tsx` | Adicionar logs de atividade para create/update |
-| `src/hooks/useRequirements.tsx` | Adicionar logs para create/toggle + refatorar para aceitar callbacks |
-| `src/hooks/useMeetings.tsx` | Adicionar log para create |
-| `src/hooks/useProjectFiles.tsx` | Adicionar logs para upload/delete |
-| `src/hooks/useRequirementComments.tsx` | Adicionar log para create + aceitar projectId |
-| `src/components/projects/RequirementComments.tsx` | Redesign premium completo |
-| `src/components/layout/MobileSidebar.tsx` | Adicionar NotificationDropdown |
+| Acao | Arquivo |
+|------|---------|
+| Criar | `supabase/functions/generate-prd/index.ts` |
+| Criar | `src/components/projects/GeneratePRDDialog.tsx` |
+| Criar | `src/hooks/useGeneratePRD.tsx` |
+| Editar | `src/pages/ProjectDetail.tsx` (adicionar botao) |
 
----
+### Dependencia
 
-### Detalhes Tecnicos
+- `react-markdown` (verificar se ja esta instalado, senao adicionar)
 
-**Importacoes necessarias:**
-```text
-import { logProjectActivity } from './useActivityLogs';
-import { useAuth } from './useAuth'; // onde nao existir
-```
-
-**Padrao de log:**
-```text
-// No onSuccess das mutations:
-logProjectActivity(
-  projectId,
-  user.id,
-  'action_type',
-  'Descricao legivel',
-  { metadata_opcional }
-);
-```
-
-**Nota:** Os logs sao assincronos e nao bloqueiam a UI. Erros de log sao silenciosos (apenas console.error).
-
----
-
-### Ordem de Implementacao
-
-1. Atualizar `useProjects.tsx` com logs automaticos
-2. Atualizar `useRequirements.tsx` com logs
-3. Atualizar `useMeetings.tsx` e `useProjectFiles.tsx` com logs
-4. Atualizar `useRequirementComments.tsx` (adicionar projectId e log)
-5. Redesign premium do `RequirementComments.tsx`
-6. Adicionar notificacoes no `MobileSidebar.tsx`
-
----
-
-### Resultado Esperado
-
-Apos implementacao:
-- Timeline de atividades sera preenchida automaticamente com todas as acoes do usuario
-- Comentarios terao visual premium consistente com o resto do sistema
-- Mobile tera paridade de funcionalidades com desktop (notificacoes)
-- Experiencia mais rica e profissional em todas as interacoes
